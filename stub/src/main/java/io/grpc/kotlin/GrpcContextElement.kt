@@ -16,7 +16,7 @@
 
 package io.grpc.kotlin
 
-import kotlinx.coroutines.ThreadContextElement
+import kotlinx.coroutines.CopyableThreadContextElement
 import kotlin.coroutines.CoroutineContext
 import io.grpc.Context as GrpcContext
 
@@ -24,7 +24,7 @@ import io.grpc.Context as GrpcContext
  * A [CoroutineContext] that propagates an associated [io.grpc.Context] to coroutines run using
  * that context, regardless of thread.
  */
-class GrpcContextElement(private val grpcContext: GrpcContext) : ThreadContextElement<GrpcContext> {
+class GrpcContextElement(private val grpcContext: GrpcContext) : CopyableThreadContextElement<GrpcContext> {
   companion object Key : CoroutineContext.Key<GrpcContextElement> {
     fun current(): GrpcContextElement = GrpcContextElement(GrpcContext.current())
   }
@@ -38,5 +38,23 @@ class GrpcContextElement(private val grpcContext: GrpcContext) : ThreadContextEl
 
   override fun updateThreadContext(context: CoroutineContext): GrpcContext {
     return grpcContext.attach()
+  }
+
+  override fun copyForChild(): CopyableGrpcContext {
+    // Copy from the ThreadLocal source of truth at child coroutine launch time. This makes
+    // ThreadLocal writes between resumption of the parent coroutine and the launch of the
+    // child coroutine visible to the child.
+    val curr = Context.current()
+    return GrpcContextElement(curr)
+  }
+
+  override fun mergeForChild(overwritingElement: CoroutineContext.Element): CoroutineContext {
+    // Merge operation defines how to handle situations when both
+    // the parent coroutine has an element in the context and
+    // an element with the same key was also
+    // explicitly passed to the child coroutine.
+    // If merging does not require special behavior,
+    // the copy of the element can be returned.
+    return GrpcContextElement(Context.current())
   }
 }

@@ -37,7 +37,9 @@ class GrpcContextElement(private val grpcContext: GrpcContext) : CopyableThreadC
   }
 
   override fun updateThreadContext(context: CoroutineContext): GrpcContext {
-    return grpcContext.attach()
+    val curr = GrpcContext.current()
+    grpcContext.attach()
+    return curr
   }
 
   override fun copyForChild(): GrpcContextElement {

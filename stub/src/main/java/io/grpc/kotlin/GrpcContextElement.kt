@@ -40,11 +40,11 @@ class GrpcContextElement(private val grpcContext: GrpcContext) : CopyableThreadC
     return grpcContext.attach()
   }
 
-  override fun copyForChild(): CopyableGrpcContext {
+  override fun copyForChild(): GrpcContextElement {
     // Copy from the ThreadLocal source of truth at child coroutine launch time. This makes
     // ThreadLocal writes between resumption of the parent coroutine and the launch of the
     // child coroutine visible to the child.
-    val curr = Context.current()
+    val curr = GrpcContext.current()
     return GrpcContextElement(curr)
   }
 
@@ -55,6 +55,6 @@ class GrpcContextElement(private val grpcContext: GrpcContext) : CopyableThreadC
     // explicitly passed to the child coroutine.
     // If merging does not require special behavior,
     // the copy of the element can be returned.
-    return GrpcContextElement(Context.current())
+    return GrpcContextElement(GrpcContext.current())
   }
 }

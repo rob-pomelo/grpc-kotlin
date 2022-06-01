@@ -33,12 +33,12 @@ class GrpcContextElement(private val grpcContext: GrpcContext) : CopyableThreadC
     get() = Key
 
   override fun restoreThreadContext(context: CoroutineContext, oldState: GrpcContext) {
-    grpcContext.detach(oldState)
+    //grpcContext.detach(oldState)
   }
 
   override fun updateThreadContext(context: CoroutineContext): GrpcContext {
     val curr = GrpcContext.current()
-    grpcContext.attach()
+    //grpcContext.attach()
     return curr
   }
 
